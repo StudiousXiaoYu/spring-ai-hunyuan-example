@@ -1,4 +1,4 @@
-package org.xiaoyu;
+package io.github.studiousxiaoyu;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

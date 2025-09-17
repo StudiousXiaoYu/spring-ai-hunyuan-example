@@ -1,4 +1,4 @@
-package org.xiaoyu.chat.domain;
+package io.github.studiousxiaoyu.chat.domain;
 
 import java.util.List;
 
