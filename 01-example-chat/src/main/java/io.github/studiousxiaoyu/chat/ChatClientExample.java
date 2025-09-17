@@ -13,13 +13,17 @@ import io.github.studiousxiaoyu.hunyuan.chat.message.HunYuanAssistantMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 @Slf4j
@@ -72,6 +77,41 @@ public class ChatClientExample {
                 .map(content -> ServerSentEvent.<String>builder() // 封装为SSE事件
                         .data(content)
                         .build());
+    }
+
+    @PostMapping("/chatWithPic")
+    public String chatWithPic(@RequestParam("userInput")  String userInput) {
+        var imageData = new ClassPathResource("/img.png");
+        var userMessage = UserMessage.builder()
+                .text(userInput)
+                .media(List.of(new Media(MimeTypeUtils.IMAGE_PNG, imageData)))
+                .build();
+        var hunyuanChatOptions = HunYuanChatOptions.builder().model("hunyuan-turbos-vision").build();
+        String content = this.chatClient.prompt(new Prompt(userMessage, hunyuanChatOptions))
+                .call()
+                .content();
+        log.info("content: {}", content);
+        return content;
+    }
+
+    //https://cloudcache.tencent-cloud.com/qcloud/ui/portal-set/build/About/images/bg-product-series_87d.png
+    @PostMapping("/chatWithPicUrl")
+    public String chatWithPicUrl(@RequestParam("url")  String url,@RequestParam("userInput")  String userInput) throws MalformedURLException {
+        var imageData = new UrlResource(url);
+        var userMessage = UserMessage.builder()
+                .text(userInput)
+                .media(List.of(Media.builder()
+                        .mimeType(MimeTypeUtils.IMAGE_PNG)
+                        .data(url)
+                        .build()
+                ))
+                .build();
+        var hunyuanChatOptions = HunYuanChatOptions.builder().model("hunyuan-t1-vision").build();
+        String content = this.chatClient.prompt(new Prompt(userMessage, hunyuanChatOptions))
+                .call()
+                .content();
+        log.info("content: {}", content);
+        return content;
     }
 
     /**
@@ -134,7 +174,7 @@ public class ChatClientExample {
         String text = output.getText();
         log.info("think: {}", think);
         log.info("text: {}", text);
-        return text;
+        return "think:" + think + "\n\ntext:" + text;
     }
 
     @PostMapping("/stream-think")

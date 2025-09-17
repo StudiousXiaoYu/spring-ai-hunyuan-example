@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>01-course-quickstart</artifactId>
+    <artifactId>01-example-chat</artifactId>
 
     <url>https://github.com/StudiousXiaoYu/spring-ai-courses</url>
 
